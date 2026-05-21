@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Dashboard</title>
+  <meta name="description" content="Global Weather Intelligence Dashboard — search any city for real-time weather data including temperature, humidity, wind speed, and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=2" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ── Background Orbs ── -->
+  <div class="bg-orbs" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+
+  <!-- ── App Wrapper ── -->
+  <div id="weather-animations" class="weather-animations" aria-hidden="true"></div>
+  <div class="app-wrapper">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">
+        <span class="logo-icon">🌍</span>
+        <span class="logo-text">Global Weather</span>
+      </div>
+      <h1 class="header-title">Weather Dashboard</h1>
+      <p class="header-subtitle">Real-time weather intelligence for any city in the world</p>
+      
+      <!-- Unit Toggle (Module 6) -->
+      <div class="header-controls">
+        <div class="unit-toggle" aria-label="Toggle Temperature Unit">
+          <button id="unit-c" class="unit-btn active" title="Celsius">°C</button>
+          <button id="unit-f" class="unit-btn" title="Fahrenheit">°F</button>
+        </div>
+
+        <!-- Theme Toggle (Module 9) -->
+        <div class="theme-toggle" aria-label="Toggle Theme">
+          <select id="theme-select" class="theme-select">
+            <option value="auto">⚙️ Auto</option>
+            <option value="light">☀️ Light</option>
+            <option value="dark">🌙 Dark</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <!-- Search Section -->
+    <section class="search-section" aria-label="City search">
+      <div class="search-container">
+        <div class="search-box">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input
+            id="city-input"
+            type="text"
+            class="search-input"
+            placeholder="Enter city name (e.g., London, Delhi)"
+            autocomplete="off"
+            aria-label="City name"
+          />
+        </div>
+        <button id="search-btn" class="search-btn" aria-label="Search weather">
+          <span class="btn-text">Search</span>
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </button>
+        <button id="loc-btn" class="loc-btn" title="Use My Location" aria-label="Use My Location">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Favorite Cities Section (Module 7) -->
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+
+      <!-- ══ Favorite Cities (Module 7) ══ -->
+      <section id="favorites-section" class="favorites-section hidden" aria-label="Favorite Cities">
+        <div class="fav-header">
+          <h3 class="fav-title">Favorite Cities</h3>
+          <button id="fav-clear-btn" class="fav-clear-btn">Clear All</button>
+        </div>
+        <div id="favorites-list" class="favorites-list">
+          <!-- JS populates cities here -->
+        </div>
+      </section>
+
+      <!-- Loading State -->
+      <div id="loading" class="loading-state hidden" role="status" aria-live="polite">
+        <div class="spinner">
+          <span class="spinner-ring"></span>
+        </div>
+        <p id="loading-msg" class="loading-text">Fetching weather data…</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-box" class="error-state hidden" role="alert" aria-live="assertive">
+        <span class="error-icon">⚠️</span>
+        <p id="error-message" class="error-text">Something went wrong.</p>
+        <button id="error-retry-btn" class="retry-btn">Try Again</button>
+      </div>
+
+      <!-- ══ Weather Card — Module 2 Enhanced ══ -->
+      <article id="weather-card" class="weather-card glass-panel hidden" aria-label="Current Weather">
+        
+        <!-- Zone 1: Location -->
+        <div class="card-top">
+          <div class="city-info">
+            <h2 id="city-name">London</h2>
+            <span id="city-country" class="city-country">GB</span>
+          </div>
+          <div class="top-actions">
+            <span id="condition-badge" class="condition-badge">Cloudy</span>
+            <button id="save-btn" class="save-btn click-scale">☆ Save City</button>
+          </div>
+        </div>
+
+        <!-- Zone 2: Hero -->
+        <div class="hero-stats">
+          <div class="hero-icon-wrap">
+            <img id="weather-icon" src="" alt="Weather" />
+          </div>
+          <div class="hero-temp-wrap">
+            <span id="temp-value" class="hero-temp">0.0</span>
+          </div>
+          <p id="weather-condition" class="hero-condition">Cloudy</p>
+          <p id="feels-like-value" class="feels-like">Feels like 12.0°C</p>
+        </div>
+
+        <!-- Zone 3: 2-column detail grid -->
+        <div class="detail-grid">
+
+          <!-- Humidity -->
+          <div class="detail-cell">
+            <div class="detail-icon-wrap detail-icon--blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+              </svg>
+            </div>
+            <div class="detail-info">
+              <span class="detail-label">Humidity</span>
+              <span id="humidity" class="detail-value">—</span>
+            </div>
+          </div>
+
+          <!-- Wind Speed -->
+          <div class="detail-cell">
+            <div class="detail-icon-wrap detail-icon--teal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
+              </svg>
+            </div>
+            <div class="detail-info">
+              <span class="detail-label">Wind Speed</span>
+              <span id="wind-speed" class="detail-value">—</span>
+            </div>
+          </div>
+
+          <!-- High / Low -->
+          <div class="detail-cell">
+            <div class="detail-icon-wrap detail-icon--orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                <polyline points="17 6 23 6 23 12"/>
+              </svg>
+            </div>
+            <div class="detail-info">
+              <span class="detail-label">High / Low</span>
+              <span id="temp-range" class="detail-value">—</span>
+            </div>
+          </div>
+
+          <!-- Visibility -->
+          <div class="detail-cell">
+            <div class="detail-icon-wrap detail-icon--purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </div>
+            <div class="detail-info">
+              <span class="detail-label">Visibility</span>
+              <span id="visibility" class="detail-value">—</span>
+            </div>
+          </div>
+
+        </div><!-- /.detail-grid -->
+
+      </article><!-- /#weather-card -->
+
+      <!-- ══ Weather Alerts (Module 8) ══ -->
+      <section id="alerts-section" class="alerts-section hidden" aria-label="Weather Alerts">
+        <h3 class="alerts-title">Weather Alerts</h3>
+        <div id="alerts-container" class="alerts-container"></div>
+      </section>
+
+      <!-- ══ 5-Day Forecast (Module 3) ══ -->
+      <section id="forecast-section" class="forecast-section hidden" aria-label="5-Day Forecast">
+        <h3 class="forecast-title">5-Day Forecast</h3>
+        <div id="forecast-grid" class="forecast-grid">
+          <!-- JS will populate cards here. Skeleton loading state: -->
+          <div class="forecast-card skeleton"></div>
+          <div class="forecast-card skeleton"></div>
+          <div class="forecast-card skeleton"></div>
+          <div class="forecast-card skeleton"></div>
+          <div class="forecast-card skeleton"></div>
+        </div>
+      </section>
+
+      <!-- ══ Weather Analytics (Module 4) ══ -->
+      <section id="analytics-section" class="analytics-section hidden" aria-label="Weather Analytics">
+        <h3 class="forecast-title">Weather Analytics</h3>
+        <div class="analytics-grid">
+          <!-- Temp Chart -->
+          <div class="analytics-card">
+            <h4 class="chart-header">5-Day Temperature Trend</h4>
+            <div class="canvas-wrapper">
+              <canvas id="tempChart"></canvas>
+            </div>
+          </div>
+          <!-- Humidity Chart -->
+          <div class="analytics-card">
+            <h4 class="chart-header">5-Day Humidity Levels</h4>
+            <div class="canvas-wrapper">
+              <canvas id="humidityChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Empty / Welcome State -->
+      <div id="welcome-state" class="welcome-state glass-panel">
+        <div class="welcome-content">
+          <div class="welcome-icon">🌍</div>
+          <h2>Global Weather Intelligence</h2>
+          <p>Discover real-time weather analytics and detailed forecasts for over 200,000 cities worldwide.</p>
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      <p>Powered by <a href="https://openweathermap.org" target="_blank" rel="noopener noreferrer">OpenWeather</a> • Global Weather Intelligence Dashboard</p>
+    </footer>
+
+  </div><!-- /.app-wrapper -->
+
+  <script src="script.js?v=2"></script>
+</body>
+</html>
